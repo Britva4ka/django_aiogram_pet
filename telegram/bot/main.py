@@ -35,6 +35,12 @@ dp.middleware.setup(ThrottlingMiddleware(limit=2))  # anti-flood
 dp.middleware.setup(SaveLastMessageMiddleware())  # remember last bot message id (handler must return msg object)
 
 
+@dp.message_handler(Text(equals='bind'))
+async def bind(message: types.Message) -> types.Message:
+    sent_message = await message.answer('Клац', reply_markup=kb.bind)
+    return sent_message
+
+
 @dp.message_handler(commands=['admin'], state='*')
 @delete_last_messages
 @finish_any_state

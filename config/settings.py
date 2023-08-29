@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from django.urls import reverse_lazy
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,7 +28,12 @@ SECRET_KEY = 'django-insecure-(+=ah9e(%jgwi#8$p!+jbk!9)_2fr%ave1m7k806nbs-3ye33p
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['ec5f-193-110-22-30.ngrok-free.app']
+CSRF_TRUSTED_ORIGINS = [
+    "https://ec5f-193-110-22-30.ngrok-free.app",
+]
+CSRF_COOKIE_SAMESITE = "None"
+
 
 
 # Application definition
@@ -41,6 +47,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users',
     'telegram',
+    'bootstrap5',
+    'main',
+    'crispy_forms',
 ]
 
 MIDDLEWARE = [
@@ -127,6 +136,12 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # USER MODEL
 AUTH_USER_MODEL = 'users.User'
+# Crispy forms
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+
+CRISPY_TEMPLATE_PACK = 'bootstrap5'
+# Login url
+LOGIN_URL = reverse_lazy('users:sign-in')
 # load environment variables from .env
 load_dotenv()
 

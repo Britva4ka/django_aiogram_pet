@@ -1,0 +1,70 @@
+{% extends "telegram/base.html" %}
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <h2 class="custom-heading">User Login</h2>
+            <form action="{% url 'telegram:login' %}" method="post" id="login-form" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" class="form-control" required>
+                    <div class="invalid-feedback">
+                        This field is required.
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" class="form-control" required>
+                    <div class="invalid-feedback">
+                        This field is required.
+                    </div>
+                </div>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-danger" role="alert" id="error-message">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                <button type="submit">Confirm</button>
+            </form>
+          <script>
+            document.getElementById('login-form').addEventListener('submit', function(e) {
+                let form = this;
+                if (!form.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    form.classList.add('was-validated');
+                    return;
+                }
+
+                e.preventDefault();
+                let tg = window.Telegram.WebApp;
+                let user_id = tg.initDataUnsafe.user.id;
+                let username = document.getElementById('username').value;
+                let password = document.getElementById('password').value;
+
+                fetch(this.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        tg_id: user_id,
+                        username: username,
+                        password: password
+                    })
+                })
+                .then(response => response.text())
+                .then(html => {
+                    document.body.innerHTML = html;
+                    form.classList.add('was-validated'); // Mark form as validated after updating content
+                });
+            });
+          </script>
+        </div>
+    </div>
+</div>
+{% endblock %}

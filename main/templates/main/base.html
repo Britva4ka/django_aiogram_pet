@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>{% block title %}{% endblock %}</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  {% load bootstrap5 %}
+  {% bootstrap_css %}
+  {% bootstrap_javascript %}
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+{#  <a class="navbar-brand" href="{% url 'tasks:list' %}">#}
+{#    <img src="https://img.freepik.com/premium-vector/letter-t-education-logo-book-concept-training-career-sign-university-academy-graduation-logo_754537-1488.jpg" width="30" height="30" class="d-inline-block align-top" alt="">#}
+{#        Tasks Manager#}
+{#  </a>#}
+{#    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">#}
+{#      <span class="navbar-toggler-icon"></span>#}
+{#    </button>#}
+{#    <div class="collapse navbar-collapse" id="navbarSupportedContent">#}
+{#        <ul class="navbar-nav mr-auto">#}
+{#            {% if request.user.is_authenticated %}#}
+{#            <li class="nav-item">#}
+{#                <a class="nav-link" href="{% url 'tasks:create' %}">Create Task</a>#}
+{#            </li>#}
+{#            {% endif %}#}
+{#        </ul>#}
+{#    </div>#}
+    <ul class="navbar-nav ms-auto">
+        <li class="nav-item me-2">
+            {% if request.user.is_authenticated %}
+                <a class="nav-link" href="{% url 'users:logout' %}">Logout</a>
+            {% else %}
+                <a class="nav-link" href="{% url 'users:sign-in' %}">Login</a>
+            {% endif %}
+        </li>
+        {% if not request.user.is_authenticated %}
+            <li class="nav-item me-2">
+                <a class="nav-link" href="{% url 'users:sign-up' %}">Register</a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+  {% block content %}
+  {% endblock %}
+</body>
+</html>

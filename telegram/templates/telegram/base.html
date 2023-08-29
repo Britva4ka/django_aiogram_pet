@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>{% block title %}{% endblock %}</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  {% load bootstrap5 %}
+  {% bootstrap_css %}
+  {% bootstrap_javascript %}
+  <style>
+      @import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&display=swap&effect=3d');
+      body {
+          color: var(--tg-theme-text-color);
+          background: var(--tg-theme-bg-color);
+      }
+      button {
+          color: var(--tg-theme-button-color);
+          background: var(--tg-theme-button-text-color);
+      }
+      button:hover {
+          background: var(--tg-theme-secondary-bg-color);
+      }
+      .custom-heading {
+      font-family: 'Black Ops One', sans-serif;
+      font-size: 36px;
+      /* Применяем 3D эффект */;
+    }
+
+  </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-md navbar-dark" style="background-color: var(--tg-theme-secondary-bg-color);">
+    <ul class="navbar-nav mx-auto">
+        {% if not request.user.is_authenticated %}
+            <li class="nav-item me-2">
+                <a class="nav-link" href="{% url 'telegram:login' %}" style="color: var(--tg-theme-link-color);">Login</a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+  {% block content %}
+  {% endblock %}
+</body>
+</html>
