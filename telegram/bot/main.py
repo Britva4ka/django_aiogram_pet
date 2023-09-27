@@ -14,9 +14,12 @@ from .database import WeatherSubscriptionManager, add_new_user, format_translate
 from .utils import get_object_timezone_by_str, get_current_time_by_timezone
 from .decorators import delete_last_messages, finish_any_state
 from .services import ForecastManager
-from .states import WeatherSub
+from .states import WeatherSub, QuizStates
 from .middlewares import ThrottlingMiddleware, SaveLastMessageMiddleware
 from . import keyboards as kb
+from telegram.models import Quiz, Question, Choice
+from aiogram.types import Poll, PollType, PollAnswer
+
 
 API_TOKEN = settings.TELEGRAM_BOT_API_TOKEN
 # Configure logging
@@ -35,8 +38,90 @@ dp.middleware.setup(ThrottlingMiddleware(limit=2))  # anti-flood
 dp.middleware.setup(SaveLastMessageMiddleware())  # remember last bot message id (handler must return msg object)
 
 
-@dp.message_handler(Text(equals='bind'))
+@delete_last_messages
+@dp.message_handler(Text(equals='Викторина 🎯'))
+async def quiz(message: types.Message) -> types.Message:
+    await message.delete()
+    state = dp.current_state(chat=message.chat.id, user=message.from_user.id)
+    data = await state.get_data()
+    await bot.delete_message(message.from_user.id, data['last_msg'])
+    await QuizStates.quiz.set()
+    quizzes_queryset = Quiz.objects.all()
+    quizzes = [q async for q in quizzes_queryset]
+    quiz = random.choice(quizzes)
+    questions_queryset = Question.objects.filter(quiz=quiz).all()
+    questions = {}
+    polls = []
+    async for q in questions_queryset:
+        choices_queryset = Choice.objects.filter(question=q).all()
+        questions[q] = []
+        correct_answer = None
+        count = 0
+        async for choice in choices_queryset:
+            questions[q].append(str(choice))
+            if choice.is_correct:
+                correct_answer = count
+            count += 1
+        poll = Poll(
+            type=PollType.QUIZ,
+            question=q,
+            options=questions[q],
+            correct_option_id=correct_answer,
+        )
+        polls.append(poll)
+    first_poll = polls.pop()
+    sent_message = await bot.send_poll(chat_id=message.chat.id,
+                                       question=first_poll.question,
+                                       options=first_poll.options,
+                                       type=first_poll.type,
+                                       correct_option_id=first_poll.correct_option_id,
+                                       is_anonymous=False,)
+    state = dp.current_state(user=message.from_user.id)
+    data = await state.get_data()
+    data["poll"] = first_poll
+    data["remain"] = polls
+    data["correct_answers"] = 0
+    await state.set_data(data)
+    return sent_message
+
+
+@delete_last_messages
+@dp.poll_answer_handler()
+async def handle_poll_answer(quiz_answer: PollAnswer):
+    user_id = quiz_answer.user.id
+    state = dp.current_state(chat=user_id, user=user_id)
+    data = await state.get_data()
+    await bot.delete_message(quiz_answer.user.id, data['last_msg'])
+    if data["poll"].correct_option_id == quiz_answer.option_ids[0]:
+        data["correct_answers"] += 1
+    if data["remain"]:
+        poll = data["remain"].pop()
+        data['poll'] = poll
+
+        sent_message = await bot.send_poll(quiz_answer.user.id,
+                                           question=poll.question,
+                                           options=poll.options,
+                                           type=poll.type,
+                                           correct_option_id=poll.correct_option_id,
+                                           is_anonymous=False)
+        data['last_msg'] = sent_message.message_id
+        await state.set_data(data)
+    else:
+
+        await state.finish()
+        sent_message = await bot.send_message(chat_id=quiz_answer.user.id,
+                                              text=f"Correct answers: {data['correct_answers']}",
+                                              reply_markup=kb.main)
+        data['last_msg'] = sent_message.message_id
+        await state.set_data(data)
+
+    return sent_message
+
+
+@delete_last_messages
+@dp.message_handler(Text(equals='Авторизация (в разработке)'))
 async def bind(message: types.Message) -> types.Message:
+    await message.delete()
     sent_message = await message.answer('Клац', reply_markup=kb.bind)
     return sent_message
 
@@ -76,7 +161,7 @@ async def send_welcome(message: types.Message) -> types.Message:
     """
     sent_message = await message.answer_photo(
         photo="AgACAgIAAxkBAAIJCWTchytn2IhLSnRyENtU-W0B4q5gAAI5yzEbm_zhSliItVQvSMuWAQADAgADeAADMAQ",
-        caption='Привет!\nЯ бот-питомец Britva4ka!🇺🇦\nУмею разное, выбирай в меню',
+        caption=f'Привет, {message.from_user.first_name}!\nЯ бот-питомец Britva4ka!🇺🇦\nУмею разное, выбирай в меню',
         reply_markup=kb.main
     )
     # sent_message = await message.answer("Привет!\nЯ бот-питомец Britva4ka!🇺🇦\n"

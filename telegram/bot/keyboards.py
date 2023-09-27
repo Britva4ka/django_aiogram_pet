@@ -4,6 +4,8 @@ from aiogram.types.web_app_info import WebAppInfo
 main = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 main.add(types.KeyboardButton(text="Подписаться на прогноз погоды 📆 \n(или обновить данные)"))
 main.add(types.KeyboardButton(text="Отменить подписку ❎"))
+main.add(types.KeyboardButton(text="Викторина 🎯"))
+main.add(types.KeyboardButton(text="Авторизация (в разработке)"))
 
 
 weather_format = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
@@ -22,5 +24,5 @@ weather_location.add(
 
 bind = types.InlineKeyboardMarkup()
 bind.add(
-    types.InlineKeyboardButton(text='bind', web_app=WebAppInfo(url='https://ec5f-193-110-22-30.ngrok-free.app/telegram/login/'))
+    types.InlineKeyboardButton(text='bind', web_app=WebAppInfo(url='https://db61-193-110-22-30.ngrok-free.app/telegram/login/'))
 )
